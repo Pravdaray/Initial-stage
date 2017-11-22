@@ -1,0 +1,63 @@
+#!/usr/bin/env python2
+# -*- coding: utf-8 -*-
+"""
+Created on Wed Nov 22 10:55:22 2017
+
+@author: pravda
+"""
+
+import os
+import sys
+import vtk, qt, ctk, slicer
+from slicer.ScriptedLoadableModule import *
+import logging
+import numpy as np
+from vtk.util.numpy_support import vtk_to_numpy as v2n
+
+
+class Growcut:
+  def __init__(self, parent):
+    parent.title = "Hello Python Part C - Laplace"
+    parent.categories = ["Examples"]
+    parent.dependencies = []
+    parent.contributors = ["Pravda Jith Ray"]
+    parent.helpText = """
+    Example of scripted loadable extension for the Graphcut method.
+    """
+    parent.acknowledgementText = """
+    This file is developed for the test run of semi_automatic segmentation method logics.""" # replace with organization, grant and thanks.
+    self.parent = parent
+
+
+class SegmentLogic(ScriptedLoadableModuleLogic):
+    
+    # checking for the volume data that is passed
+    
+    def hasImagedata(self, volumeNode):
+        """ This returns boolean value after checking whether the image data is available or not"""
+        if not volumeNode:
+            logging.debug('image data has failed, no volume node')
+            return False
+        if volumeNode.GetImageData() is None:
+            logging.debug('image data has failed, volume node has no image data')
+            return False
+        return True
+    
+    #validation for input and output 
+    
+    def isValidInputOutputData(self, inputVolumeNode, outputVolumeNode):
+        if not inputVolumeNode:
+            logging.debug('no input data defined')
+            return False
+        if not outputVolumeNode:
+            logging.debug('no output volume defined')
+            return False
+        if inputVolumeNode.GetID() == outputVolumeNode.GetID():
+            logging.debug('input volume and output volume is same, create a new volume')
+            return False
+        return True
+    
+    def findContour(self, image):
+        inp, contours, hierarchy = cv2.findContours(image, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
+        contour_size = [(cv2.contourArea(contour), contour) for contour in contours]
+      
